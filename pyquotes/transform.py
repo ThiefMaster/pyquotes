@@ -5,13 +5,18 @@ from parso.tree import BaseNode
 from pyquotes.quotes import normalize_string_prefix, normalize_string_quotes
 
 
+class _CombinedFString(PythonLeaf):
+    __slots__ = ()
+    type = 'combined_fstring'
+
+
 def _replace_fstring(node):
     # parso separates string and python parts of fstrings which is probably a
     # good idea in most cases, but it makes quote normalization much harder, so
     # we convert it back to a single string containing the full f-string
     prefix = node.children[0].prefix
     value = node.get_code(include_prefix=False)
-    return PythonLeaf(value, node.start_pos, prefix)
+    return _CombinedFString(value, node.start_pos, prefix)
 
 
 def _iter_strings(tree):
