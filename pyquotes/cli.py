@@ -101,7 +101,6 @@ def _process_file(
     check_only: bool,
     double_quotes: bool,
 ):
-    absfile = file.absolute()
     old_code = file.read_text()
     new_code = transform_source(old_code, double_quotes=double_quotes)
     if old_code == new_code:
@@ -113,8 +112,8 @@ def _process_file(
         diff_lines = difflib.unified_diff(
             old_code.splitlines(),
             new_code.splitlines(),
-            f'{absfile}:before',
-            f'{absfile}:after',
+            f'{file}:before',
+            f'{file}:after',
             _getmtime(file),
             datetime.now().isoformat(),
             lineterm='',
