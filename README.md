@@ -4,7 +4,7 @@ Single quotes are superior. And if you disagree, there's an option for this as w
 
 In any case, quotes should be consistent throughout the codebase, and not rely on tools like black
 that reformat everything. Of course using those tools is perfectly fine if you want this behavior,
-but sometimes you *just* want to avoid discussiong the quote style during PR reviews).
+but sometimes you *just* want to avoid discussing the quote style during PR reviews).
 
 ## Usage
 
