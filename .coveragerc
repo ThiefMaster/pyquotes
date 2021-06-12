@@ -1,3 +1,7 @@
 [run]
 branch = true
 source = pyquotes
+
+[report]
+exclude_lines =
+    pragma: no cover

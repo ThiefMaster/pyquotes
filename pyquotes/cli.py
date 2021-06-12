@@ -115,7 +115,7 @@ def _process_file(
             f'{file}:before',
             f'{file}:after',
             _getmtime(file),
-            datetime.now().isoformat(),
+            _getmtime(None),
             lineterm='',
         )
         click.echo('\n'.join(diff_lines))
@@ -140,5 +140,7 @@ def _atomic_overwrite(file: pathlib.Path, content: str):
     tmp_file.replace(file)
 
 
-def _getmtime(path: pathlib.Path) -> str:
+def _getmtime(path: t.Optional[pathlib.Path]) -> str:  # pragma: no cover
+    if path is None:
+        return datetime.now().isoformat()
     return datetime.fromtimestamp(path.stat().st_mtime).isoformat()
