@@ -74,7 +74,7 @@ def main(
                 double_quotes=double_quotes,
             )
         except Exception:
-            click.echo(f'Error while processing {file}')
+            click.echo(f'Error while processing {file}', err=True)
             raise
         if changed:
             has_changes = True
