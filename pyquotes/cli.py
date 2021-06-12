@@ -42,7 +42,6 @@ from pyquotes.transform import transform_source
         file_okay=True,
         dir_okay=True,
         readable=True,
-        path_type=pathlib.Path,
     ),
 )
 def main(
@@ -63,6 +62,7 @@ def main(
     if quiet and verbose:
         raise click.BadOptionUsage('verbose', 'Cannot mix verbose and quiet')
     has_changes = False
+    files = [pathlib.Path(f) for f in files]  # `path_type` in click 7 is useless
     for file in _expand_dirs(files):
         try:
             changed = _process_file(
