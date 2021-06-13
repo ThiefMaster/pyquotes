@@ -80,7 +80,7 @@ double-quotes = false
 extend-exclude = ['htmlcov', '.vscode']
 ```
 
-## Flake8
+## flake8
 
 If you use flake8, you may want to install [flake8-quotes](https://pypi.org/project/flake8-quotes/)
 to also get warnings if the code currently has incorrect quotes. You can use the following options
