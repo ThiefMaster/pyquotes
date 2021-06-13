@@ -15,7 +15,7 @@ jobs:
       name: Set up Python 🐍
       with:
         python-version: '3.9'
-    - name: Check version
+    - name: Check version 🔍
       run: python .github/utils/check_version.py "${GITHUB_REF#refs/tags/v}"
     - name: Install pypa/build 🔧
       run: pip install --user build
@@ -32,7 +32,7 @@ jobs:
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
-    # - name: Publish to PyPI 🚀
-    #   uses: pypa/gh-action-pypi-publish@bea5cda687c2b79989126d589ef4411bedce0195
-    #   with:
-    #     password: ${{ secrets.PYPI_API_TOKEN }}
+    - name: Publish to PyPI 🚀
+      uses: pypa/gh-action-pypi-publish@bea5cda687c2b79989126d589ef4411bedce0195
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
