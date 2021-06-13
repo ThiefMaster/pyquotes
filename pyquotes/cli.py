@@ -8,6 +8,7 @@ from datetime import datetime
 import click
 
 import pyquotes
+from pyquotes.settings import Config
 from pyquotes.transform import transform_source
 
 
@@ -33,6 +34,25 @@ from pyquotes.transform import transform_source
 @click.option(
     '--check-only', '-c', is_flag=True, help='Only check files without updating them.'
 )
+@click.option(
+    '--exclude',
+    multiple=True,
+    metavar='PATTERN',
+    help='''
+    Exclude files/directories matching this pattern. Can be used multiple times.
+    Replaces the built-in excludes. Does not apply to explicitly-specified files.
+    ''',
+)
+@click.option(
+    '--extend-exclude',
+    '-X',
+    multiple=True,
+    metavar='PATTERN',
+    help='''
+    Exclude files/directories matching this pattern. Can be used multiple times.
+    Extends the built-in excludes. Does not apply to explicitly-specified files.
+    ''',
+)
 @click.argument(
     'files',
     nargs=-1,
@@ -44,14 +64,7 @@ from pyquotes.transform import transform_source
         readable=True,
     ),
 )
-def main(
-    files: t.List[pathlib.Path],
-    quiet=False,
-    verbose=False,
-    diff=False,
-    check_only=False,
-    double_quotes=False,
-):
+def main(files: t.List[pathlib.Path], **cli_settings):
     """
     A tool that ensures consistent string quotes in your Python code.
 
@@ -59,20 +72,17 @@ def main(
 
     If any files needed changes, it exits with a non-zero status code.
     """
-    if quiet and verbose:
-        raise click.BadOptionUsage('verbose', 'Cannot mix verbose and quiet')
+    # discard all missing values to get the dataclass defaults
+    cli_settings = {k: v for k, v in cli_settings.items() if v}
+    try:
+        config = Config(cli_settings)
+    except ValueError as exc:
+        raise click.BadArgumentUsage(str(exc))
     has_changes = False
     files = [pathlib.Path(f) for f in files]  # `path_type` in click 7 is useless
-    for file in _expand_dirs(files):
+    for file in _expand_dirs(files, config):
         try:
-            changed = _process_file(
-                file,
-                quiet=quiet,
-                verbose=verbose,
-                diff=diff,
-                check_only=check_only,
-                double_quotes=double_quotes,
-            )
+            changed = _process_file(file, config=config)
         except Exception:
             click.echo(f'Error while processing {file}', err=True)
             raise
@@ -82,33 +92,28 @@ def main(
 
 
 def _expand_dirs(
-    files: t.Iterable[pathlib.Path], check_ext: bool = False
+    files: t.Iterable[pathlib.Path], config: Config, check_ext: bool = False
 ) -> t.Iterable[pathlib.Path]:
     for file in files:
-        if file.is_file():
+        if config.is_path_excluded(file):
+            if config.verbose:
+                click.echo(f'{file} is excluded', err=True)
+        elif file.is_file():
             if not check_ext or file.suffix == '.py':
                 yield file
         elif file.is_dir():
-            yield from _expand_dirs(file.iterdir(), check_ext=True)
+            yield from _expand_dirs(file.iterdir(), config, check_ext=True)
 
 
-def _process_file(
-    file: pathlib.Path,
-    *,
-    quiet: bool,
-    verbose: bool,
-    diff: bool,
-    check_only: bool,
-    double_quotes: bool,
-):
+def _process_file(file: pathlib.Path, config: Config):
     old_code = file.read_text()
-    new_code = transform_source(old_code, double_quotes=double_quotes)
+    new_code = transform_source(old_code, double_quotes=config.double_quotes)
     if old_code == new_code:
-        if verbose:
+        if config.verbose:
             click.echo(f'{file} is up to date', err=True)
         return False
 
-    if diff:
+    if config.diff:
         diff_lines = difflib.unified_diff(
             old_code.splitlines(),
             new_code.splitlines(),
@@ -121,13 +126,13 @@ def _process_file(
         click.echo('\n'.join(diff_lines))
         return True
 
-    if check_only:
-        if not quiet:
+    if config.check_only:
+        if not config.quiet:
             click.echo(f'{file} needs changes', err=True)
         return True
 
     _atomic_overwrite(file, new_code)
-    if not quiet:
+    if not config.quiet:
         click.echo(f'Updated {file}', err=True)
     return True
 

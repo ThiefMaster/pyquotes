@@ -43,7 +43,7 @@ def test_quiet_verbose_invalid(cli_runner):
         main, ['--quiet', '--verbose', 'code'], prog_name='pyquotes'
     )
     assert result.exit_code != 0
-    assert 'Error: Cannot mix verbose and quiet' in result.stderr
+    assert 'Error: quiet and verbose are mutually exclusive' in result.stderr
 
 
 def test_check_only_verbose(cli_runner):
@@ -52,10 +52,13 @@ def test_check_only_verbose(cli_runner):
     )
     _assert_unchanged('a.py')
     _assert_unchanged('nested/b.py')
+    _assert_unchanged('nested/weird.py')
     assert result.exit_code == 1
     assert sorted(result.stderr.strip().splitlines()) == [
         'code/a.py is up to date',
+        'code/build is excluded',
         'code/nested/b.py needs changes',
+        'code/nested/weird.py needs changes',
     ]
     assert not result.output
 
@@ -72,7 +75,9 @@ def test_check_only_quiet(cli_runner):
 
 
 def test_check_only(cli_runner):
-    result = cli_runner.invoke(main, ['--check-only', 'code'], prog_name='pyquotes')
+    result = cli_runner.invoke(
+        main, ['--check-only', '-X', 'weird.py', 'code'], prog_name='pyquotes'
+    )
     _assert_unchanged('a.py')
     _assert_unchanged('nested/b.py')
     assert result.exit_code == 1
@@ -92,7 +97,9 @@ def test_check_only_uptodate(cli_runner):
 
 def test_diff(cli_runner, monkeypatch):
     monkeypatch.setattr('pyquotes.cli._getmtime', lambda x: '<time is meaningless>')
-    result = cli_runner.invoke(main, ['--diff', 'code'], prog_name='pyquotes')
+    result = cli_runner.invoke(
+        main, ['--diff', '-X', 'weird.py', 'code'], prog_name='pyquotes'
+    )
     _assert_unchanged('a.py')
     _assert_unchanged('nested/b.py')
     assert result.exit_code == 1
@@ -110,8 +117,20 @@ def test_update(cli_runner):
     result = cli_runner.invoke(main, ['code'], prog_name='pyquotes')
     _assert_unchanged('a.py')
     _assert_changed('nested/b.py')
+    _assert_changed('nested/weird.py')
     assert result.exit_code == 1
-    assert result.stderr.strip() == 'Updated code/nested/b.py'
+    assert sorted(result.stderr.strip().splitlines()) == [
+        'Updated code/nested/b.py',
+        'Updated code/nested/weird.py',
+    ]
+    assert result.output == ''
+
+
+def test_update_file(cli_runner):
+    result = cli_runner.invoke(main, ['code/build/nope.py'], prog_name='pyquotes')
+    _assert_changed('build/nope.py')
+    assert result.exit_code == 1
+    assert result.stderr.strip() == 'Updated code/build/nope.py'
     assert result.output == ''
 
 
@@ -129,7 +148,39 @@ def test_error(cli_runner, monkeypatch):
         raise Exception('kaboom')
 
     monkeypatch.setattr('pyquotes.cli.transform_source', _fail)
-    result = cli_runner.invoke(main, ['code'], prog_name='pyquotes')
+    result = cli_runner.invoke(main, ['code/a.py'], prog_name='pyquotes')
     assert result.exit_code != 0
-    assert result.stderr.strip() == 'Error while processing code/nested/b.py'
+    assert result.stderr.strip() == 'Error while processing code/a.py'
     assert result.output == ''
+
+
+def test_excludes(cli_runner):
+    result = cli_runner.invoke(
+        main,
+        ['--check-only', '--verbose', '--exclude', 'weird.py', 'code'],
+        prog_name='pyquotes',
+    )
+    assert result.exit_code == 1
+    assert sorted(result.stderr.strip().splitlines()) == [
+        'code/a.py is up to date',
+        'code/build/nope.py needs changes',
+        'code/nested/b.py needs changes',
+        'code/nested/weird.py is excluded',
+    ]
+    assert not result.output
+
+
+def test_extend_excludes(cli_runner):
+    result = cli_runner.invoke(
+        main,
+        ['--check-only', '--verbose', '--extend-exclude', 'weird.py', 'code'],
+        prog_name='pyquotes',
+    )
+    assert result.exit_code == 1
+    assert sorted(result.stderr.strip().splitlines()) == [
+        'code/a.py is up to date',
+        'code/build is excluded',
+        'code/nested/b.py needs changes',
+        'code/nested/weird.py is excluded',
+    ]
+    assert not result.output
