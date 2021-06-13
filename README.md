@@ -1,4 +1,4 @@
-# pyquotes
+# pyquotes ![Tests](https://github.com/ThiefMaster/pyquotes/actions/workflows/tests.yml/badge.svg)
 
 Single quotes are superior. And if you disagree, there's an option for this as well.
 
