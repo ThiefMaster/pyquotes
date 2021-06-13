@@ -32,7 +32,11 @@ from pyquotes.transform import transform_source
     '--diff', '-d', is_flag=True, help='Only show diffs without updating files.'
 )
 @click.option(
-    '--check-only', '-c', is_flag=True, help='Only check files without updating them.'
+    '--check-only',
+    '--check',
+    '-c',
+    is_flag=True,
+    help='Only check files without updating them.',
 )
 @click.option(
     '--exclude',

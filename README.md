@@ -30,7 +30,7 @@ Options:
                                 processed.
 
   -d, --diff                    Only show diffs without updating files.
-  -c, --check-only              Only check files without updating them.
+  -c, --check-only, --check     Only check files without updating them.
   --exclude PATTERN             Exclude files/directories matching this
                                 pattern. Can be used multiple times. Replaces
                                 the built-in excludes. Does not apply to
