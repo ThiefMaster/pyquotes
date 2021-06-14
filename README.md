@@ -6,6 +6,14 @@ In any case, quotes should be consistent throughout the codebase, and not rely o
 that reformat everything. Of course using those tools is perfectly fine if you want this behavior,
 but sometimes you *just* want to avoid discussing the quote style during PR reviews).
 
+## Installation
+
+Install pyquotes using `pip`:
+
+```
+$ pip install pyquotes
+```
+
 ## Usage
 
 ```
