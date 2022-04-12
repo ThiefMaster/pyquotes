@@ -110,7 +110,7 @@ def _expand_dirs(
 
 
 def _process_file(file: pathlib.Path, config: Config):
-    old_code = file.read_text()
+    old_code = file.read_text(encoding='UTF-8')
     new_code = transform_source(old_code, double_quotes=config.double_quotes)
     if old_code == new_code:
         if config.verbose:
@@ -145,7 +145,7 @@ def _atomic_overwrite(file: pathlib.Path, content: str):
     tmp_file = file.with_suffix(f'{file.suffix}.pyquoted')
     tmp_file.touch()
     shutil.copymode(file, tmp_file)
-    tmp_file.write_text(content)
+    tmp_file.write_text(content, encoding='UTF-8')
     tmp_file.replace(file)
 
 
