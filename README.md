@@ -6,6 +6,13 @@ In any case, quotes should be consistent throughout the codebase, and not rely o
 that reformat everything. Of course using those tools is perfectly fine if you want this behavior,
 but sometimes you *just* want to avoid discussing the quote style during PR reviews).
 
+## Use ruff instead!
+
+> [!IMPORTANT]
+> **This project is no longer actively maintained/developed.** Please use [`ruff`](https://docs.astral.sh/ruff/)
+> instead, its [Q ruleset](https://docs.astral.sh/ruff/rules/#flake8-quotes-q) has auto-fixers available, so
+> even if you do not want any other linting, you can use it just for cleaning up quotes.
+
 ## Installation
 
 Install pyquotes using `pip`:
